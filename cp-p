@@ -1,0 +1,95 @@
+#!/bin/bash
+###################################
+#       THis script is try to give you progress show and time count for "cp" command
+#       Usage: 
+#       First cp this file to your home dir or someplace , 
+#       then you can add alias  "alias cp='~/cp-p' "or "alias cp='$someplace/cp-p'" to the .bash_alias file under you home dir
+#       You can used it like: $ cp-p -r /home/test/ /tmp/
+#       FileName: cp-p
+#       Author: wudy
+#       Last edit time: 2017/3/23
+#       Version: 1.0
+###################################
+function progressbar(){
+    INTERVAL=0.2
+    RCOUNT=0
+    for orign in $@; do
+        if [ -f $orign ] || [ -d $orign ];then
+            src=$orign
+            break
+        fi
+    done
+    
+    filesize=$(du -sh $src| sed 's/\t.*//g')
+    echo -en "Total size:$filesize\nProgressing: "
+    while :
+    do
+        
+        if [ $RCOUNT -lt 200 ];then 
+            RCOUNT=$(($RCOUNT + 1))
+            divRCOUNT=$(($RCOUNT % 5))
+        else
+            if [ $divRCOUNT -lt 3 ];then
+                divRCOUNT=$(($divRCOUNT + 1))
+            else
+                divRCOUNT=0
+            fi
+
+        fi
+        
+        case $divRCOUNT in 
+            0) echo -e '—\b\c'
+                sleep $INTERVAL
+                ;;
+            1) echo -e '\\\b\c'
+                sleep $INTERVAL
+                ;;
+            2) echo -e '|\b\c'
+                sleep $INTERVAL
+                ;;    
+            3) echo -e '/\b\c'
+                sleep $INTERVAL
+                ;;
+            4) echo -e '=\c'
+                sleep $INTERVAL
+                ;;
+        esac
+              
+    done
+}
+if [ ! -e /bin/cp ];then
+    echo -e "Your system doesn't have cp!\n"
+    exit 1
+fi
+if [ ! -e /usr/bin/du ];then
+    echo -e "Your system doesn't have du!\n"
+    exit 2
+fi
+if [ ! -e /bin/date ];then
+    echo -e "Your system doesn't have date!\n"
+    exit 3
+fi
+if [ ! -e /bin/kill ];then
+    echo -e "Your system doesn't have kill!\n"
+    exit 4
+fi
+if [ ! -e /bin/sed ];then
+    echo -e "Your system doesn't have sed!\n"
+    exit 5
+fi
+progressbar "$*" &
+trap "kill -9 $BG_PROGRESS" 9
+BG_PROGRESS=$!
+starttime=$(date +%s)
+cp $*
+nowtime=$(date +%s)
+usedtime=$(($nowtime-$starttime))
+echo -e "\nUsed time: $usedtime s\n"
+ps -p $BG_PROGRESS >/dev/null
+if [ "$?" = "0" ]; then
+    kill -SIGKILL $BG_PROGRESS
+fi
+unset starttime
+unset nowtime
+unset BG_PROGRESS
+unset usedtime
