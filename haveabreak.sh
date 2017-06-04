@@ -22,18 +22,18 @@ notify_flag=0
 if [ $get_hour -gt $start_hour ]; then
 	hour_past=$(($get_hour-$start_hour))
 	min_past=$(($hour_past*60+$get_min-$start_min))
-	if [ $min_past -ge 60 ]; then 
+	if [ $min_past -ge 60 ]; then
 		notify_flag=1
 	fi
-fi		
-if [ $notify_flag -eq 1 ]; then 
+fi
+if [ $notify_flag -eq 1 ]; then
 	export DISPLAY=:0.0
 	notify-send -t 5000 "已经１小时了，该休息一下了！"
 	uptime | cut -d ',' -f1 |cut -d ' ' -f2 >./starttime.dat
 	echo "$get_hour:$get_min $start_hour:$start_min $min_past $notify_flag  success">>notify.log
-	zenity --warning --text "已经１小时了，该休息一下了！"
-else 
-	echo "0"	
+	zenity --warning --text "已经１小时了，该休息一下了！" &>/dev/null && (uptime | cut -d ',' -f1 |cut -d ' ' -f2 >/home/wudy/starttime.dat)
+else
+	echo "0"
 	#echo "$get_hour:$get_min $start_hour:$start_min none  $notify_flag ">>notify.log
 fi
 unset get_hour
@@ -43,4 +43,3 @@ unset start_min
 unset notify_flag
 unset hour_past
 unset min_past
-
